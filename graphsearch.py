@@ -34,8 +34,8 @@ class GraphSearch(object):
     def __init__(self):
         
         print("starting...")
-        self.adjecent_cost = 1
-        self.diagonal_cost = 1
+        self.adjecent_cost = 10
+        self.diagonal_cost = 14
 
         open_nodes = []  # set of nodes that needs to be evaluated
         closed_nodes = []  # set of nodes that is already evaluated
@@ -80,7 +80,9 @@ class GraphSearch(object):
                             neighbour.f = neighbour.g + neighbour.h
                             neighbour.parent = current
                             
-                
+    def print_map():
+        pass
+        
     def get_cost(self, node, target_node):
         cost = 0
 
