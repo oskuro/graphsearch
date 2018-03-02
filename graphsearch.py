@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 
-
 # G-cost = a nodes distance from starting node.
 # H-cost = a nodes distance from target node
 # F-cost = g-cost + h-cost
@@ -13,9 +12,12 @@ import sys
     
 '''
 class Node(object):
-    def __init__(self, x, y, target_node = None, traversable = True):
+    def __init__(self, x, y, traversable = True):
         self.x = x
         self.y = y
+    
+    def to_string(self):
+        return "X: %i Y: %i G: %i H: %i F: %i " % (self.x, self.y, self.g, self.h, self.f)
 
     x = 0
     y = 0
@@ -25,7 +27,6 @@ class Node(object):
     f = 0
 
     parent = ""
-
     traversable = True
 
 
@@ -52,36 +53,71 @@ class GraphSearch(object):
         open_nodes.append(start_node)
 
         while len(open_nodes) > 0:
+            #raw_input()
+            print("main loop")
             current = self.get_node_with_lowest_f_cost(open_nodes)
-            print("in loop with current X: %i Y: %i") % (current.x, current.y)
+            #print("in loop with current X: %i Y: %i") % (current.x, current.y)
             open_nodes.remove(current)
             closed_nodes.append(current)
+            print("node %s" % current.to_string())
 
             if current.x == target_node.x and current.y == target_node.y:
                 print("Found target. yay!")
+                while current.parent != "":
+                    print(current.to_string())
+                    current = current.parent
                 sys.exit()
             
+            print(self.get_range(current.x, size))
+            print(self.get_range(current.y, size))
             for x in self.get_range(current.x, size):
                 for y in self.get_range(current.y, size):
                     neighbour = self.tilelist[x][y]
-                    if self.contains(neighbour, closed_nodes) or (neighbour.x == current.x and neighbour.y == current.y):
+
+                    if self.contains(neighbour, closed_nodes):
                         continue
 
-                    print("Checking neighbour X: %i Y: %i") % (neighbour.x, neighbour.y)
+                    if neighbour.x == current.x and neighbour.y == current.y:
+                        continue
+
+                    if neighbour.traversable == False:
+                        self.remove_from_list(neighbour, open_nodes)
+                        self.add_to_list(neighbour, closed_nodes)
+                        continue
 
                     if not self.contains(neighbour, open_nodes):
                         open_nodes.append(neighbour)
-                        neighbour.g = current.g + 1
+                        neighbour.g = current.g + self.get_cost(neighbour, current)
                         neighbour.h = self.get_cost(neighbour, target_node)
                         neighbour.f = neighbour.g + neighbour.h
+                        neighbour.parent = current
                     else:
-                        if neighbour.f < current.f or (neighbour.f == current.f and neighbour.h < current.h):
-                            neighbour.g = current.g + 1
-                            neighbour.f = neighbour.g + neighbour.h
-                            neighbour.parent = current
-                            
-    def print_map():
-        pass
+                        score = neighbour.g + self.get_cost(current, neighbour)
+                        if score >= current.g:
+                            continue
+                        neighbour.parent = current
+                        print("NEW BEST: %s" % neighbour.to_string())
+        
+            self.print_map(open_nodes, closed_nodes, size)
+
+    def remove_from_list(self, node, list):
+        if self.contains(node, list):
+            list.remove(node)
+
+    def add_to_list(self, node, list):
+        if not self.contains(node, list):
+            list.append(node)
+
+    def print_map(self, o, c, s):
+        for x in range(0, s):
+            for y in range(0, s):
+                node = self.tilelist[x][y]
+                if self.contains(node, o):
+                    sys.stdout.write("@")
+                else:
+                    sys.stdout.write("#")
+            print("")
+                
         
     def get_cost(self, node, target_node):
         cost = 0
@@ -95,10 +131,10 @@ class GraphSearch(object):
 
     def get_node_with_lowest_f_cost(self, open_nodes):
         lowest_cost_node = Node(0,0)
-        lowest_cost_node.f = 100000
+        lowest_cost_node.f = float("inf")
         for node in open_nodes:
             if node.f == 0:
-                print("node has no f cost. skipping")
+                #print("node has no f cost. skipping")
                 continue
 
             if node.f < lowest_cost_node.f or (node.f == lowest_cost_node.f and node.h < lowest_cost_node.h):
@@ -121,7 +157,7 @@ class GraphSearch(object):
         if max > size:
             max = size -1
 
-        return range(value-1, value+1)
+        return range(min, max)
 
 if __name__ == '__main__':
     GraphSearch()
