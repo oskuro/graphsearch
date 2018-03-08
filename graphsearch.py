@@ -13,6 +13,8 @@ class Node(object):
     def __init__(self, x, y, traversable = True):
         self.x = x
         self.y = y
+        self.traversable = traversable
+
     
     def to_string(self):
         return "X: %i Y: %i G: %s H: %s F: %s " % (self.x, self.y, self.g, self.h, self.f)
@@ -36,21 +38,26 @@ class GraphSearch(object):
         self.adjecent_cost = 10
         self.diagonal_cost = 14
 
-        size = 10
-        self.tilelist = [[Node(x,y) for y in range(size)] for x in range(size)]
+
+        #self.tilelist = [[Node(x,y) for y in range(size)] for x in range(size)]
+        self.tilelist = [[Node(0,0, True), Node(0,1, True), Node(0,2, True), Node(0,3, True), Node(0,4, True)],
+                         [Node(1,0, True), Node(1,1, True), Node(1,2, True), Node(1,3, True), Node(1,4, True)],
+                         [Node(2,0, True), Node(2,1, True), Node(2,2, True), Node(2,3, True), Node(2,4, True)],
+                         [Node(3,0, True), Node(3,1, False), Node(3,2,False), Node(3,3, False), Node(3,4, False)],
+                         [Node(4,0, True), Node(4,1, True), Node(4,2, True), Node(4,3, True), Node(4,4, True)]]
+
+        size = len(self.tilelist)                         
         open_nodes = []  # set of nodes that needs to be evaluated
         closed_nodes = []  # set of nodes that is already evaluated
 
-        start_node = self.tilelist[1][3]
-        target_node = self.tilelist[4][8]
+        start_node = self.tilelist[0][0]
+        target_node = self.tilelist[4][4]
         print(start_node.to_string())
         print(target_node.to_string())
 
         start_node.g = 0
         start_node.h = self.get_cost(start_node, target_node)
         start_node.f = start_node.h
-
-        
 
         open_nodes.append(start_node)
 
@@ -69,9 +76,9 @@ class GraphSearch(object):
                 print(start_node.to_string())
                 sys.exit()
             
-            for x in self.get_range(current.x, size):
-                for y in self.get_range(current.y, size):
-                    neighbour = self.tilelist[x][y]
+            for nx in self.get_range(current.x, size):
+                for ny in self.get_range(current.y, size):
+                    neighbour = self.tilelist[nx][ny]
 
                     if self.contains(neighbour, closed_nodes):
                         continue
@@ -79,7 +86,7 @@ class GraphSearch(object):
                     if neighbour == current:
                         continue
 
-                    if neighbour.traversable == False:
+                    if not neighbour.traversable:
                         self.remove_from_list(neighbour, open_nodes)
                         self.add_to_list(neighbour, closed_nodes)
                         continue
@@ -91,10 +98,8 @@ class GraphSearch(object):
                         neighbour.f = neighbour.g + neighbour.h
                         neighbour.parent = current
                         open_nodes.append(neighbour)
-                    else:
-                        self.add_to_list(neighbour, closed_nodes)
         
-            #self.print_map(open_nodes, closed_nodes, size)
+            self.print_map(open_nodes, closed_nodes, current, size)
 
     def remove_from_list(self, node, list):
         if self.contains(node, list):
@@ -104,12 +109,18 @@ class GraphSearch(object):
         if not self.contains(node, list):
             list.append(node)
 
-    def print_map(self, o, c, s):
+    def print_map(self, o, c, curr, s):
         for x in range(0, s):
             for y in range(0, s):
                 node = self.tilelist[x][y]
-                if self.contains(node, o):
+                if node == curr:
                     sys.stdout.write("@")
+                elif self.contains(node, o):
+                    sys.stdout.write("A")
+                elif not node.traversable:
+                    sys.stdout.write("U")
+                elif self.contains(node, c):
+                    sys.stdout.write("C")
                 else:
                     sys.stdout.write("#")
             print("")
@@ -149,7 +160,7 @@ class GraphSearch(object):
             min = 0
 
         if max > size:
-            max = size -1
+            max = size
 
         return range(min, max)
 
