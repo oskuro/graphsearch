@@ -1,13 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import sys
 
 # G-cost = a nodes cost from starting node.
 # H-cost = a nodes cost from target node
 # F-cost = g-cost + h-cost
-
-''' get neighbour with lowest f-cost
-    if more than one neighbour have the same f-cost. choose the one with the lowest h-cost but add the others to open_list
-'''
 
 class Node(object):
     def __init__(self, x, y, traversable = True):
@@ -26,7 +23,7 @@ class Node(object):
     h = float("inf")
     f = float("inf")
 
-    parent = ""
+    parent = None
     traversable = True
 
 
@@ -38,8 +35,6 @@ class GraphSearch(object):
         self.adjecent_cost = 10
         self.diagonal_cost = 14
 
-
-        #self.tilelist = [[Node(x,y) for y in range(size)] for x in range(size)]
         self.tilelist = [[Node(0,0, True), Node(0,1, True), Node(0,2, True), Node(0,3, True), Node(0,4, True)],
                          [Node(1,0, True), Node(1,1, True), Node(1,2, True), Node(1,3, True), Node(1,4, True)],
                          [Node(2,0, True), Node(2,1, True), Node(2,2, True), Node(2,3, True), Node(2,4, True)],
@@ -52,8 +47,6 @@ class GraphSearch(object):
 
         start_node = self.tilelist[0][0]
         target_node = self.tilelist[4][4]
-        print(start_node.to_string())
-        print(target_node.to_string())
 
         start_node.g = 0
         start_node.h = self.get_cost(start_node, target_node)
@@ -64,16 +57,15 @@ class GraphSearch(object):
         while len(open_nodes) > 0:
             
             current = self.get_node_with_lowest_f_cost(open_nodes)
-            print("Current: %s" % current.to_string())
+            #print("Current: %s" % current.to_string())
             open_nodes.remove(current)
             closed_nodes.append(current)
 
             if current == target_node:
                 print("Found target. yay!")
-                while current.parent != "":
-                    print(current.to_string())
-                    current = current.parent
-                print(start_node.to_string())
+                self.print_path(current)
+                self.print_parents()
+                #self.print_map(open_nodes, closed_nodes, current, size)
                 sys.exit()
             
             for nx in self.get_range(current.x, size):
@@ -99,7 +91,14 @@ class GraphSearch(object):
                         neighbour.parent = current
                         open_nodes.append(neighbour)
         
-            self.print_map(open_nodes, closed_nodes, current, size)
+            
+
+    def print_path(self, node):
+        while True:
+            print(node.to_string())
+            node = node.parent
+            if node == None:
+                break
 
     def remove_from_list(self, node, list):
         if self.contains(node, list):
@@ -124,8 +123,37 @@ class GraphSearch(object):
                 else:
                     sys.stdout.write("#")
             print("")
-                
-        
+
+    def print_parents(self):
+        for x in range(0, 5):
+            for y in range(0, 5):
+                node = self.tilelist[x][y]
+                if node.parent == None:
+                    sys.stdout.write(" # ")
+                    continue
+                if node.x > node.parent.x:        # parent is to the left
+                    if node.y > node.parent.y:    # parent is above
+                        sys.stdout.write(" ↖ ")
+                    elif node.y == node.parent.y: # parent on same row
+                        sys.stdout.write(" ↑ ")
+                    else:                         # parent is below
+                        sys.stdout.write(" ↙ ") 
+                elif node.x == node.parent.x:     # parent is on same column
+                    if node.y > node.parent.y:    # parent is above
+                        sys.stdout.write(" ← ")
+                    elif node.y == node.parent.y: # parent on the same row
+                        pass # this should never happen
+                    else:                         # parent is below
+                        sys.stdout.write(" → ")
+                else:                             #parent is to the right
+                    if node.y > node.parent.y:    # parent is above
+                        sys.stdout.write(" ↗ ")
+                    elif node.y == node.parent.y: # parent on same row
+                        sys.stdout.write(" ↓ ")
+                    else:                         # parent is below
+                        sys.stdout.write(" ↘ ") 
+            print("")
+                    
     def get_cost(self, node, target_node):
         cost = 0
 
