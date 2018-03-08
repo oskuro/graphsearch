@@ -43,15 +43,16 @@ class GraphSearch(object):
         start_node = self.tilelist[1][3]
         target_node = self.tilelist[4][8]
 
+        start_node.g = 0
         start_node.h = self.get_cost(start_node, target_node)
-        start_node.f = self.get_cost(start_node, target_node)
+        start_node.f = start_node.h
 
         
 
         open_nodes.append(start_node)
 
         while len(open_nodes) > 0:
-            input()
+            
             current = self.get_node_with_lowest_f_cost(open_nodes)
             print("Current: %s" % current.to_string())
             open_nodes.remove(current)
