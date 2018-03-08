@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import sys
 
-# G-cost = a nodes distance from starting node.
-# H-cost = a nodes distance from target node
+# G-cost = a nodes cost from starting node.
+# H-cost = a nodes cost from target node
 # F-cost = g-cost + h-cost
 
 ''' get neighbour with lowest f-cost
     if more than one neighbour have the same f-cost. choose the one with the lowest h-cost but add the others to open_list
 '''
+
 class Node(object):
     def __init__(self, x, y, traversable = True):
         self.x = x
@@ -36,12 +37,14 @@ class GraphSearch(object):
         self.diagonal_cost = 14
 
         size = 10
-        self.tilelist = [[Node(x,y) for x in range(size)] for y in range(size)]
+        self.tilelist = [[Node(x,y) for y in range(size)] for x in range(size)]
         open_nodes = []  # set of nodes that needs to be evaluated
         closed_nodes = []  # set of nodes that is already evaluated
 
         start_node = self.tilelist[1][3]
         target_node = self.tilelist[4][8]
+        print(start_node.to_string())
+        print(target_node.to_string())
 
         start_node.g = 0
         start_node.h = self.get_cost(start_node, target_node)
@@ -63,6 +66,7 @@ class GraphSearch(object):
                 while current.parent != "":
                     print(current.to_string())
                     current = current.parent
+                print(start_node.to_string())
                 sys.exit()
             
             for x in self.get_range(current.x, size):
@@ -82,12 +86,13 @@ class GraphSearch(object):
 
                     score = current.g + self.get_cost(current, neighbour)
                     if not self.contains(neighbour, open_nodes) or score < neighbour.g:
-                        print("new")
                         neighbour.g = current.g + self.get_cost(neighbour, current)
                         neighbour.h = self.get_cost(neighbour, target_node)
                         neighbour.f = neighbour.g + neighbour.h
                         neighbour.parent = current
                         open_nodes.append(neighbour)
+                    else:
+                        self.add_to_list(neighbour, closed_nodes)
         
             #self.print_map(open_nodes, closed_nodes, size)
 
@@ -123,6 +128,7 @@ class GraphSearch(object):
     def get_node_with_lowest_f_cost(self, open_nodes):
         lowest_cost_node = Node(0,0)
         lowest_cost_node.f = float("inf")
+
         for node in open_nodes:
 
             if node.f < lowest_cost_node.f or (node.f == lowest_cost_node.f and node.h < lowest_cost_node.h):
