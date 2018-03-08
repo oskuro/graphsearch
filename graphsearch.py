@@ -7,9 +7,6 @@ import sys
 
 ''' get neighbour with lowest f-cost
     if more than one neighbour have the same f-cost. choose the one with the lowest h-cost but add the others to open_list
-    The chosen neighbour comes current and is added to closed.
-    when itterating over neighbours update 
-    
 '''
 class Node(object):
     def __init__(self, x, y, traversable = True):
@@ -38,38 +35,36 @@ class GraphSearch(object):
         self.adjecent_cost = 10
         self.diagonal_cost = 14
 
+        size = 10
+        self.tilelist = [[Node(x,y) for x in range(size)] for y in range(size)]
         open_nodes = []  # set of nodes that needs to be evaluated
         closed_nodes = []  # set of nodes that is already evaluated
 
-        start_node = Node(2,3)
-        target_node = Node(4,8)
+        start_node = self.tilelist[1][3]
+        target_node = self.tilelist[4][8]
 
         start_node.h = self.get_cost(start_node, target_node)
         start_node.f = self.get_cost(start_node, target_node)
 
-        size = 10
-        self.tilelist = [[Node(x,y, target_node) for x in range(size)] for y in range(size)]
+        
 
         open_nodes.append(start_node)
 
         while len(open_nodes) > 0:
-            #raw_input()
+            input()
             print("main loop")
             current = self.get_node_with_lowest_f_cost(open_nodes)
             #print("in loop with current X: %i Y: %i") % (current.x, current.y)
             open_nodes.remove(current)
             closed_nodes.append(current)
-            print("node %s" % current.to_string())
 
-            if current.x == target_node.x and current.y == target_node.y:
+            if current == target_node:
                 print("Found target. yay!")
                 while current.parent != "":
                     print(current.to_string())
                     current = current.parent
                 sys.exit()
             
-            print(self.get_range(current.x, size))
-            print(self.get_range(current.y, size))
             for x in self.get_range(current.x, size):
                 for y in self.get_range(current.y, size):
                     neighbour = self.tilelist[x][y]
@@ -77,7 +72,7 @@ class GraphSearch(object):
                     if self.contains(neighbour, closed_nodes):
                         continue
 
-                    if neighbour.x == current.x and neighbour.y == current.y:
+                    if neighbour == current:
                         continue
 
                     if neighbour.traversable == False:
@@ -85,18 +80,13 @@ class GraphSearch(object):
                         self.add_to_list(neighbour, closed_nodes)
                         continue
 
-                    if not self.contains(neighbour, open_nodes):
-                        open_nodes.append(neighbour)
+                    score = current.g + self.get_cost(current, neighbour)
+                    if not self.contains(neighbour, open_nodes) or score < neighbour.g:
                         neighbour.g = current.g + self.get_cost(neighbour, current)
                         neighbour.h = self.get_cost(neighbour, target_node)
                         neighbour.f = neighbour.g + neighbour.h
                         neighbour.parent = current
-                    else:
-                        score = neighbour.g + self.get_cost(current, neighbour)
-                        if score >= current.g:
-                            continue
-                        neighbour.parent = current
-                        print("NEW BEST: %s" % neighbour.to_string())
+                        open_nodes.append(neighbour)
         
             self.print_map(open_nodes, closed_nodes, size)
 
@@ -133,9 +123,6 @@ class GraphSearch(object):
         lowest_cost_node = Node(0,0)
         lowest_cost_node.f = float("inf")
         for node in open_nodes:
-            if node.f == 0:
-                #print("node has no f cost. skipping")
-                continue
 
             if node.f < lowest_cost_node.f or (node.f == lowest_cost_node.f and node.h < lowest_cost_node.h):
                 lowest_cost_node = node
