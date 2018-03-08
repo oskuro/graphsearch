@@ -14,14 +14,14 @@ class Node(object):
         self.y = y
     
     def to_string(self):
-        return "X: %i Y: %i G: %i H: %i F: %i " % (self.x, self.y, self.g, self.h, self.f)
+        return "X: %i Y: %i G: %s H: %s F: %s " % (self.x, self.y, self.g, self.h, self.f)
 
     x = 0
     y = 0
 
-    g = 0
-    h = 0
-    f = 0
+    g = float("inf")
+    h = float("inf")
+    f = float("inf")
 
     parent = ""
     traversable = True
@@ -52,9 +52,8 @@ class GraphSearch(object):
 
         while len(open_nodes) > 0:
             input()
-            print("main loop")
             current = self.get_node_with_lowest_f_cost(open_nodes)
-            #print("in loop with current X: %i Y: %i") % (current.x, current.y)
+            print("Current: %s" % current.to_string())
             open_nodes.remove(current)
             closed_nodes.append(current)
 
@@ -82,13 +81,14 @@ class GraphSearch(object):
 
                     score = current.g + self.get_cost(current, neighbour)
                     if not self.contains(neighbour, open_nodes) or score < neighbour.g:
+                        print("new")
                         neighbour.g = current.g + self.get_cost(neighbour, current)
                         neighbour.h = self.get_cost(neighbour, target_node)
                         neighbour.f = neighbour.g + neighbour.h
                         neighbour.parent = current
                         open_nodes.append(neighbour)
         
-            self.print_map(open_nodes, closed_nodes, size)
+            #self.print_map(open_nodes, closed_nodes, size)
 
     def remove_from_list(self, node, list):
         if self.contains(node, list):
