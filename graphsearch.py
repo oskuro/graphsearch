@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from random import randint
+import time
 
 # G-cost = a nodes cost from starting node.
 # H-cost = a nodes cost from target node
@@ -39,15 +40,7 @@ class GraphSearch(object):
         size = 50                         
 
         self.tilelist = []
-        for x in range(size):
-            temp = []
-            for y in range(size):
-                r = randint(0,100)
-                walkable = True
-                if r < 10:
-                    walkable = False
-                temp.append(Node(x, y, walkable))
-            self.tilelist.append(temp)
+        self.tilelist = self.init_list(self.tilelist, size)
             
 
         open_nodes = []  # set of nodes that needs to be evaluated
@@ -61,9 +54,14 @@ class GraphSearch(object):
         start_node.f = start_node.h
 
         open_nodes.append(start_node)
+        start_time = time.time() 
+        self.find_path(open_nodes, closed_nodes, start_node, target_node, size)
+        end_time = time.time() - start_time
+        print(end_time)
 
-        while len(open_nodes) > 0:
-            
+    def find_path(self, open_nodes, closed_nodes, start_node, target_node, size):
+         while len(open_nodes) > 0:
+                
             current = self.get_node_with_lowest_f_cost(open_nodes)
             #print("Current: %s" % current.to_string())
             open_nodes.remove(current)
@@ -72,9 +70,10 @@ class GraphSearch(object):
             if current == target_node:
                 print("Found target. yay!")
                 #self.print_path(current)
-                #self.print_parents(size)
+                #self.print_parents(self.tilelist)
+                #self.print_visual_path(size, current)
                 #self.print_map(open_nodes, closed_nodes, current, size)
-                sys.exit()
+                return
             
             for nx in self.get_range(current.x, size):
                 for ny in self.get_range(current.y, size):
@@ -98,9 +97,6 @@ class GraphSearch(object):
                         neighbour.f = neighbour.g + neighbour.h
                         neighbour.parent = current
                         open_nodes.append(neighbour)
-        
-            
-
     def print_path(self, node):
         while True:
             print(node.to_string())
@@ -132,10 +128,10 @@ class GraphSearch(object):
                     sys.stdout.write("#")
             print("")
 
-    def print_parents(self, size):
-        for x in range(0, size):
-            for y in range(0, size):
-                node = self.tilelist[x][y]
+    def print_parents(self, nodelist):
+        for x in range(0, len(nodelist)):
+            for y in range(0, len(nodelist)):
+                node = nodelist[x][y]
                 if not node.traversable:
                     sys.stdout.write(" X ")
                     continue 
@@ -164,7 +160,18 @@ class GraphSearch(object):
                     else:                         # parent is below
                         sys.stdout.write(" ↘ ") 
             print("")
-                    
+
+    def print_visual_path(self, size, target):
+        newlist = self.purge_parents(self.tilelist)
+        current = target
+        while True:
+            newlist[current.x][current.y] = current
+            if current.parent == None:
+                break
+            current = current.parent
+        self.print_parents(newlist)
+
+
     def get_cost(self, node, target_node):
         cost = 0
 
@@ -202,6 +209,29 @@ class GraphSearch(object):
             max = size
 
         return range(min, max)
+    
+    def purge_parents(self, parentlist):
+        newlist = []
+        for x in range(len(parentlist)):
+            row = []
+            for y in range(len(parentlist)):
+                temp = parentlist[x][y]
+                row.append(Node(temp.x, temp.y, temp.traversable))
+            newlist.append(row)
+        return newlist
+                
+    def init_list(self, emptylist, size):
+        for x in range(size):
+            temp = []
+            for y in range(size):
+                r = randint(0,100)
+                walkable = True
+                if r < 30:
+                    walkable = False
+                temp.append(Node(x, y, walkable))
+            emptylist.append(temp)
+        return emptylist
 
 if __name__ == '__main__':
     GraphSearch()
+    
