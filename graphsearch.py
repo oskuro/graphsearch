@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+from random import randint
 
 # G-cost = a nodes cost from starting node.
 # H-cost = a nodes cost from target node
@@ -35,18 +36,25 @@ class GraphSearch(object):
         self.adjecent_cost = 10
         self.diagonal_cost = 14
 
-        self.tilelist = [[Node(0,0, True), Node(0,1, True), Node(0,2, True), Node(0,3, True), Node(0,4, True)],
-                         [Node(1,0, True), Node(1,1, True), Node(1,2, True), Node(1,3, True), Node(1,4, True)],
-                         [Node(2,0, True), Node(2,1, True), Node(2,2, True), Node(2,3, True), Node(2,4, True)],
-                         [Node(3,0, True), Node(3,1, False), Node(3,2,False), Node(3,3, False), Node(3,4, False)],
-                         [Node(4,0, True), Node(4,1, True), Node(4,2, True), Node(4,3, True), Node(4,4, True)]]
+        size = 50                         
 
-        size = len(self.tilelist)                         
+        self.tilelist = []
+        for x in range(size):
+            temp = []
+            for y in range(size):
+                r = randint(0,100)
+                walkable = True
+                if r < 10:
+                    walkable = False
+                temp.append(Node(x, y, walkable))
+            self.tilelist.append(temp)
+            
+
         open_nodes = []  # set of nodes that needs to be evaluated
         closed_nodes = []  # set of nodes that is already evaluated
 
         start_node = self.tilelist[0][0]
-        target_node = self.tilelist[4][4]
+        target_node = self.tilelist[42][49]
 
         start_node.g = 0
         start_node.h = self.get_cost(start_node, target_node)
@@ -63,8 +71,8 @@ class GraphSearch(object):
 
             if current == target_node:
                 print("Found target. yay!")
-                self.print_path(current)
-                self.print_parents()
+                #self.print_path(current)
+                #self.print_parents(size)
                 #self.print_map(open_nodes, closed_nodes, current, size)
                 sys.exit()
             
@@ -124,10 +132,13 @@ class GraphSearch(object):
                     sys.stdout.write("#")
             print("")
 
-    def print_parents(self):
-        for x in range(0, 5):
-            for y in range(0, 5):
+    def print_parents(self, size):
+        for x in range(0, size):
+            for y in range(0, size):
                 node = self.tilelist[x][y]
+                if not node.traversable:
+                    sys.stdout.write(" X ")
+                    continue 
                 if node.parent == None:
                     sys.stdout.write(" # ")
                     continue
